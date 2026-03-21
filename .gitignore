@@ -1,0 +1,33 @@
+# Simulator output
+work/
+transcript
+*.wlf
+*.vcd
+*.vpd
+*.fsdb
+*.log
+modelsim.ini
+vsim.wlf
+
+# Vivado / Xilinx
+*.wdb
+*.jou
+xsim/
+.Xil/
+*.bit
+*.ltx
+
+# Build output
+sim/
+logs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.idea/
+*.swp
+*.swo
+*~
