@@ -126,7 +126,7 @@ The order below ensures you never reference something that hasn't been defined y
   - `report_phase`: print pass/fail summary
   - `// TODO:` for your own reference model logic
 
-- [ ] **Step 10: `coverage/dut_coverage.sv`** — Functional coverage
+- [x] **Step 10: `coverage/dut_coverage.sv`** — Functional coverage
   - `uvm_analysis_imp` to receive transactions
   - Covergroup with coverpoints for `a`, `b`, `result`
   - Cross coverage `a x b`

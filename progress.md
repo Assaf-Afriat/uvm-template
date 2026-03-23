@@ -4,13 +4,13 @@
 
 ---
 
-## Overall Progress: 9 / 19 steps complete
+## Overall Progress: 10 / 19 steps complete
 
 ```
 Phase 1   [##########] 100%  (2/2)  COMPLETE
 Phase 2   [##########] 100%  (5/5)  COMPLETE
 Phase 2.5 [##########] 100%  (1/1)  COMPLETE
-Phase 3   [###-------]  33%  (1/3)
+Phase 3   [######----]  66%  (2/3)
 Phase 4   [----------]   0%  (0/4)
 Phase 5   [----------]   0%  (0/4)
 ```
@@ -45,7 +45,7 @@ Phase 5   [----------]   0%  (0/4)
 | Step | File                            | Status      | Notes     |
 |------|---------------------------------|-------------|-----------|
 | 9    | `scoreboard/dut_scoreboard.sv`  | DONE        | No issues |
-| 10   | `coverage/dut_coverage.sv`      | NOT STARTED |           |
+| 10   | `coverage/dut_coverage.sv`      | DONE        | No issues |
 | 11   | `sva/dut_assertions.sv`         | NOT STARTED |           |
 
 ## Phase 4 — Environment and Test
@@ -98,16 +98,27 @@ None.
 | 18 | `dut_scoreboard.sv` | `op1`/`op2` should be `a`/`b` | FIXED |
 | 19 | `dut_scoreboard.sv` | `uvm_info` used for mismatch instead of `uvm_error` | FIXED |
 | 20 | `dut_scoreboard.sv` | `uvm_error` given 3 args (only takes 2) | FIXED |
+| 21 | `dut_coverage.sv` | `uvm_subscriber` doesn't support dual ports | FIXED (use `uvm_component`) |
+| 22 | `dut_coverage.sv` | `uvm_analysis_export` has no `get()` | FIXED (use `uvm_tlm_analysis_fifo`) |
+| 23 | `dut_coverage.sv` | Bin ranges out of range / inverted | FIXED |
+| 24 | `dut_coverage.sv` | Cross of covergroups instead of coverpoints | FIXED |
+| 25 | `dut_coverage.sv` | `run_phase` declared as function | FIXED (now task) |
+| 26 | `dut_coverage.sv` | Tasks nested inside function | FIXED (separate methods) |
+| 27 | `dut_coverage.sv` | Wrong variable names (`dut_item_in`/`dut_item_out`) | FIXED |
+| 28 | `dut_coverage.sv` | Covergroup `new()` with wrong args | FIXED |
+| 29 | `dut_coverage.sv` | `result` sampled before output captured | FIXED |
+| 30 | `dut_coverage.sv` | Missing semicolon after `new()` | FIXED |
 
 ---
 
 ## What to Do Next
 
-**Step 10: `coverage/dut_coverage.sv`** — Functional coverage collector:
-- Subscribes to the monitor's input analysis port
-- Covergroup with coverpoints for `a`, `b`, `result`
-- Cross coverage `a x b`
-- `report_phase`: print coverage percentage
-- `// TODO:` for adding bins, transitions, and custom cross coverage
+**Step 11: `sva/dut_assertions.sv`** — SVA assertions module:
+- Protocol assertions: `valid_out` should only go high one cycle after `valid_in`
+- Output stability: when `valid_out` is high, result should equal registered `a + b`
+- Reset behavior: after reset, both `valid_out` and `result` should be 0
+- Pass/fail counters per assertion
+
+After this, Phase 3 is complete and you move into Phase 4 (env, callbacks, sequences, test).
 
 ---
