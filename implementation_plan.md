@@ -133,7 +133,7 @@ The order below ensures you never reference something that hasn't been defined y
   - `report_phase`: print coverage percentage
   - `// TODO:` for adding bins, transitions, and cross coverage
 
-- [ ] **Step 11: `sva/dut_assertions.sv`** — SVA assertions module
+- [x] **Step 11: `sva/dut_assertions.sv`** — SVA assertions module
   - Basic protocol assertions: `valid_out` only when `valid_in` was asserted, output stable during valid
   - Pass/fail counters
   - `// TODO:` for protocol-specific assertions

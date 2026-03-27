@@ -1,16 +1,16 @@
 # UVM Template — Progress Tracker
 
-> Last updated: 2026-03-21
+> Last updated: 2026-03-28
 
 ---
 
-## Overall Progress: 10 / 19 steps complete
+## Overall Progress: 11 / 19 steps complete
 
 ```
 Phase 1   [##########] 100%  (2/2)  COMPLETE
 Phase 2   [##########] 100%  (5/5)  COMPLETE
 Phase 2.5 [##########] 100%  (1/1)  COMPLETE
-Phase 3   [######----]  66%  (2/3)
+Phase 3   [##########] 100%  (3/3)  COMPLETE
 Phase 4   [----------]   0%  (0/4)
 Phase 5   [----------]   0%  (0/4)
 ```
@@ -40,13 +40,13 @@ Phase 5   [----------]   0%  (0/4)
 |------|-------------------------------|--------|-----------|
 | 8    | `config/dut_agent_config.sv`  | DONE   | No issues |
 
-## Phase 3 — Checking and Coverage
+## Phase 3 — Checking and Coverage -- COMPLETE
 
-| Step | File                            | Status      | Notes     |
-|------|---------------------------------|-------------|-----------|
-| 9    | `scoreboard/dut_scoreboard.sv`  | DONE        | No issues |
-| 10   | `coverage/dut_coverage.sv`      | DONE        | No issues |
-| 11   | `sva/dut_assertions.sv`         | NOT STARTED |           |
+| Step | File                            | Status | Notes     |
+|------|---------------------------------|--------|-----------|
+| 9    | `scoreboard/dut_scoreboard.sv`  | DONE   | No issues |
+| 10   | `coverage/dut_coverage.sv`      | DONE   | No issues |
+| 11   | `sva/dut_assertions.sv`         | DONE   | No issues |
 
 ## Phase 4 — Environment and Test
 
@@ -108,17 +108,25 @@ None.
 | 28 | `dut_coverage.sv` | Covergroup `new()` with wrong args | FIXED |
 | 29 | `dut_coverage.sv` | `result` sampled before output captured | FIXED |
 | 30 | `dut_coverage.sv` | Missing semicolon after `new()` | FIXED |
+| 31 | `dut_assertions.sv` | Duplicate properties (`p_result_stable`, `p_result_valid`) | FIXED (removed) |
+| 32 | `dut_assertions.sv` | Undeclared counter variables | FIXED |
+| 33 | `dut_assertions.sv` | Assertions didn't match DUT behavior (handshake vs registered) | FIXED (rewritten) |
 
 ---
 
 ## What to Do Next
 
-**Step 11: `sva/dut_assertions.sv`** — SVA assertions module:
-- Protocol assertions: `valid_out` should only go high one cycle after `valid_in`
-- Output stability: when `valid_out` is high, result should equal registered `a + b`
-- Reset behavior: after reset, both `valid_out` and `result` should be 0
-- Pass/fail counters per assertion
+Phase 4 — Environment and Test. Four files:
 
-After this, Phase 3 is complete and you move into Phase 4 (env, callbacks, sequences, test).
+**Step 12: `env/dut_env.sv`** — The environment ties everything together:
+- Builds agent, scoreboard, coverage (use `cfg.has_checks` and `cfg.has_coverage` to conditionally build)
+- `connect_phase`: wire monitor's `analysis_imp` and `analysis_exp` to scoreboard FIFOs and coverage FIFOs
+- Get config from config DB and pass it down
+
+**Step 13: `callbacks/dut_callback_base.sv`** — Virtual callback methods (pre_drive, post_drive, post_monitor)
+
+**Step 14: `sequences/dut_base_sequence.sv`** — Base random sequence (N transactions)
+
+**Step 15: `test/dut_base_test.sv`** — Creates config, creates env, starts sequence
 
 ---
