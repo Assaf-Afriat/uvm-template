@@ -12,14 +12,16 @@ UVM-template/
 ├── config/         Agent configuration object
 ├── agent/          Driver, monitor, sequencer, agent wrapper
 ├── scoreboard/     Reference model + comparison logic
-├── coverage/       Functional coverage (WIP)
-├── env/            UVM environment (WIP)
-├── sequences/      Base sequence (WIP)
-├── sva/            SVA assertions (WIP)
-├── callbacks/      Callback base class (WIP)
-├── test/           Base test (WIP)
-└── scripts/        Compile and run scripts (WIP)
+├── coverage/       Functional coverage
+├── sva/            SVA assertions (bound in testbench when integrated)
+├── env/            UVM environment (agent, scoreboard, coverage TLM)
+├── callbacks/      Callback base class (driver, monitor, scoreboard hooks)
+├── sequences/      Base sequence (not yet added)
+├── test/           Base test (not yet added)
+└── scripts/        Compile and run scripts (not yet added)
 ```
+
+Phase 5 will add `dut_pkg.sv`, `tb_top.sv`, and `scripts/run.do` (and related integration) at the repo root.
 
 ## Quick Start
 
@@ -29,9 +31,11 @@ UVM-template/
 4. Update `interface/dut_if.sv` to match your DUT ports
 5. Update the driver, monitor, and scoreboard reference model
 
+Full integration (package, top-level testbench, run script) is tracked in [progress.md](progress.md) as Phase 5.
+
 ## Status
 
-Work in progress -- 9 of 19 implementation steps complete. See [progress.md](progress.md) for details.
+**13 of 19** implementation steps complete. Phases 1–3 and Phase 2.5 are done; Phase 4 is half done (environment and callback base in place; base sequence and base test remain); Phase 5 (package, `tb_top`, `scripts/run.do`, README polish as a tracked step) is not started. See [progress.md](progress.md) for the step-by-step checklist.
 
 ## Tools
 
