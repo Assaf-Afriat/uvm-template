@@ -1,17 +1,17 @@
 # UVM Template — Progress Tracker
 
-> Last updated: 2026-03-28
+> Last updated: 2026-03-30
 
 ---
 
-## Overall Progress: 11 / 19 steps complete
+## Overall Progress: 13 / 19 steps complete
 
 ```
 Phase 1   [##########] 100%  (2/2)  COMPLETE
 Phase 2   [##########] 100%  (5/5)  COMPLETE
 Phase 2.5 [##########] 100%  (1/1)  COMPLETE
 Phase 3   [##########] 100%  (3/3)  COMPLETE
-Phase 4   [----------]   0%  (0/4)
+Phase 4   [####------]  50%  (2/4)
 Phase 5   [----------]   0%  (0/4)
 ```
 
@@ -52,8 +52,8 @@ Phase 5   [----------]   0%  (0/4)
 
 | Step | File                             | Status      | Notes |
 |------|----------------------------------|-------------|-------|
-| 12   | `env/dut_env.sv`                 | NOT STARTED |       |
-| 13   | `callbacks/dut_callback_base.sv` | NOT STARTED |       |
+| 12   | `env/dut_env.sv`                 | DONE        | Added missing `super.connect_phase` |
+| 13   | `callbacks/dut_callback_base.sv` | DONE        | Validated; added explicit `new()` |
 | 14   | `sequences/dut_base_sequence.sv` | NOT STARTED |       |
 | 15   | `test/dut_base_test.sv`          | NOT STARTED |       |
 
@@ -111,19 +111,14 @@ None.
 | 31 | `dut_assertions.sv` | Duplicate properties (`p_result_stable`, `p_result_valid`) | FIXED (removed) |
 | 32 | `dut_assertions.sv` | Undeclared counter variables | FIXED |
 | 33 | `dut_assertions.sv` | Assertions didn't match DUT behavior (handshake vs registered) | FIXED (rewritten) |
+| 34 | `dut_env.sv` | Missing `super.connect_phase(phase)` call | FIXED |
+| 35 | `dut_callback_base.sv` | Missing explicit `new()` constructor | FIXED |
 
 ---
 
 ## What to Do Next
 
-Phase 4 — Environment and Test. Four files:
-
-**Step 12: `env/dut_env.sv`** — The environment ties everything together:
-- Builds agent, scoreboard, coverage (use `cfg.has_checks` and `cfg.has_coverage` to conditionally build)
-- `connect_phase`: wire monitor's `analysis_imp` and `analysis_exp` to scoreboard FIFOs and coverage FIFOs
-- Get config from config DB and pass it down
-
-**Step 13: `callbacks/dut_callback_base.sv`** — Virtual callback methods (pre_drive, post_drive, post_monitor)
+Phase 4 — Environment and Test. Two files remaining:
 
 **Step 14: `sequences/dut_base_sequence.sv`** — Base random sequence (N transactions)
 
