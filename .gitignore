@@ -23,3 +23,7 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# Local progress tracker (not published)
+progress.md
+

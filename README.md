@@ -1,43 +1,60 @@
 # UVM Template
 
-A clean, reusable UVM verification template for SystemVerilog designs. Clone it, rename the `dut_` prefix, swap in your DUT, and start verifying.
+A minimal UVM testbench for SystemVerilog: registered-adder placeholder DUT, agent, scoreboard, coverage, SVA, and Questa run flow. Use it as a starting point—rename the `dut_` prefix, swap RTL and ports, and extend sequences and tests.
 
-## What's Inside
+## Project demo
 
+The walkthrough (spec, testbench diagram, captured results, run commands) is in **`deliverables/uvm_template_project_demo.html`**. Open that file in a browser to review architecture and outcomes without running the simulator. To publish it on GitHub Pages, point the site at the `deliverables/` folder or copy the HTML into `docs/` as your hosting workflow requires.
+
+## Requirements
+
+- QuestaSim (or another simulator that supports UVM with a similar compile/elaborate flow; this repo is tested with Questa).
+- Python 3.x on `PATH` (for `scripts/Run/run.py`).
+- In `scripts/Run/run.py`, set **`UVM_MACROS_PATH`** to your install’s UVM `src` directory if the default path does not match your machine.
+
+## Build / run
+
+From the repo root, all commands go through **`scripts/Run/`**:
+
+```text
+cd scripts/Run
+python run.py
+python run.py --test dut_base_test
+python run.py --gui
+python run.py --clean
+python run.py --help
 ```
-UVM-template/
-├── dut/            Placeholder DUT (simple registered adder)
-├── interface/      SystemVerilog interface
-├── transaction/    Sequence item (dut_item)
-├── config/         Agent configuration object
-├── agent/          Driver, monitor, sequencer, agent wrapper
-├── scoreboard/     Reference model + comparison logic
-├── coverage/       Functional coverage
-├── sva/            SVA assertions (bound in testbench when integrated)
-├── env/            UVM environment (agent, scoreboard, coverage TLM)
-├── callbacks/      Callback base class (driver, monitor, scoreboard hooks)
-├── sequences/      Base sequence (not yet added)
-├── test/           Base test (not yet added)
-└── scripts/        Compile and run scripts (not yet added)
-```
 
-Phase 5 will add `dut_pkg.sv`, `tb_top.sv`, and `scripts/run.do` (and related integration) at the repo root.
+`compile.do` and `elaborate.do` are invoked by the script; default test is **`dut_base_test`**. See `implementation_plan.md` for how the phases map to files.
 
-## Quick Start
+## Using this template
 
-1. Clone this repo
-2. Find-replace `dut_` with your design name (e.g. `fifo_`, `uart_`)
-3. Replace `dut/dut.sv` with your RTL
-4. Update `interface/dut_if.sv` to match your DUT ports
-5. Update the driver, monitor, and scoreboard reference model
+1. **Clone** the repo and open it in your editor.
+2. **Rename** the `dut_` prefix across filenames and types (e.g. `fifo_`, `uart_`) with a project-wide find-and-replace; keep package and compile order consistent (`pkg/dut_pkg.sv`, `tb_top.sv`, `compile.do`).
+3. **Replace** `dut/dut.sv` with your RTL and **`interface/dut_if.sv`** with your ports.
+4. **Adjust** driver, monitor, scoreboard, and coverage to match your protocol and checks.
+5. **Run** from `scripts/Run/` as above; keep `logs/` and `sim/` out of version control (see `.gitignore`).
 
-Full integration (package, top-level testbench, run script) is tracked in [progress.md](progress.md) as Phase 5.
+The package pulls in UVM classes only; the interface is compiled separately before the top module (see `compile.do`).
 
-## Status
+## Repository layout
 
-**13 of 19** implementation steps complete. Phases 1–3 and Phase 2.5 are done; Phase 4 is half done (environment and callback base in place; base sequence and base test remain); Phase 5 (package, `tb_top`, `scripts/run.do`, README polish as a tracked step) is not started. See [progress.md](progress.md) for the step-by-step checklist.
-
-## Tools
-
-- SystemVerilog / UVM 1.2
-- QuestaSim (or any UVM-compatible simulator)
+| Path | Role |
+|------|------|
+| `dut/` | RTL placeholder |
+| `interface/` | `dut_if` and signals |
+| `transaction/` | `dut_item` |
+| `config/` | Agent config (`vif`, etc.) |
+| `agent/` | Driver, monitor, sequencer, agent |
+| `scoreboard/` | Reference model and comparison |
+| `coverage/` | Functional coverage |
+| `sva/` | Assertions bound in `tb_top.sv` |
+| `env/` | UVM environment wiring |
+| `callbacks/` | Callback base class |
+| `sequences/` | `dut_base_sequence` |
+| `test/` | `dut_base_test` |
+| `pkg/` | `dut_pkg.sv` (classes only) |
+| `tb_top.sv` | Top-level testbench |
+| `scripts/Run/` | `run.py`, `compile.do`, `elaborate.do`, `run.do`, assertion/UCDB helpers |
+| `deliverables/` | Static project demo HTML |
+| `implementation_plan.md` | Phased build plan and checklist |
