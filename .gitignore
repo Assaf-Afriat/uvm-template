@@ -9,14 +9,6 @@ transcript
 modelsim.ini
 vsim.wlf
 
-# Vivado / Xilinx
-*.wdb
-*.jou
-xsim/
-.Xil/
-*.bit
-*.ltx
-
 # Build output
 sim/
 logs/

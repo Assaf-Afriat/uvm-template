@@ -12,7 +12,7 @@ class dut_driver extends uvm_driver#(dut_item);
     //future callback 
     
     //configuration object
-    dut_agent_config cfg;
+    dut_agent_config agent_cfg;
     //virtual interface
     virtual dut_if vif;
 
@@ -26,11 +26,11 @@ class dut_driver extends uvm_driver#(dut_item);
         super.build_phase(phase);
         
         //get agent configuration
-        if (!uvm_config_db#(dut_agent_config)::get(this, "", "cfg", cfg)) begin
+        if (!uvm_config_db#(dut_agent_config)::get(this, "", "agent_cfg", agent_cfg)) begin
             `uvm_fatal("NO_CFG", "Configuration not set")
         end
 
-        vif = cfg.vif;
+        vif = agent_cfg.vif;
 
         if(vif == null) begin
             `uvm_fatal("DRV_VIF", "Driver virtual interface not set")

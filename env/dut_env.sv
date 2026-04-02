@@ -27,12 +27,12 @@ class dut_env extends uvm_env;
         super.connect_phase(phase);
 
         // Connect Monitor -> Scoreboard (2 channels)
-        agent.monitor.analysis_imp.connect(scoreboard.in_fifo);
-        agent.monitor.analysis_exp.connect(scoreboard.out_fifo);
+        agent.monitor.analysis_imp.connect(scoreboard.in_fifo.analysis_export);
+        agent.monitor.analysis_exp.connect(scoreboard.out_fifo.analysis_export);
 
         // Connect Monitor -> Coverage (both request and response)
-        agent.monitor.analysis_imp.connect(coverage.dut_in_port);
-        agent.monitor.analysis_exp.connect(coverage.dut_out_port);
+        agent.monitor.analysis_imp.connect(coverage.dut_in_port.analysis_export);
+        agent.monitor.analysis_exp.connect(coverage.dut_out_port.analysis_export);
     endfunction
 
 endclass

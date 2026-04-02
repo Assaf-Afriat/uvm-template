@@ -14,9 +14,9 @@ module dut(
     input [7:0] b,
     input valid_in,
 
-    //outputs
-    output [8:0] result,
-    output valid_out
+    // outputs (logic so always_ff can drive them; plain output is a net in SV)
+    output logic [8:0] result,
+    output logic valid_out
     
     );
 

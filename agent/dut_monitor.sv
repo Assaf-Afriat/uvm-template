@@ -12,7 +12,7 @@ class dut_monitor extends uvm_monitor;
     //future callback 
 
     //configuration object
-    dut_agent_config cfg;
+    dut_agent_config agent_cfg;
     //virtual interface
     virtual dut_if vif;
 
@@ -28,11 +28,11 @@ class dut_monitor extends uvm_monitor;
     function void build_phase(uvm_phase phase); 
         super.build_phase(phase);
         //get agent configuration
-        if(!uvm_config_db#(dut_agent_config)::get(this, "", "cfg", cfg)) begin
+        if(!uvm_config_db#(dut_agent_config)::get(this, "", "agent_cfg", agent_cfg)) begin
             `uvm_fatal("NO_CFG", "Configuration not set")
         end
         //get virtual interface
-        vif = cfg.vif;
+        vif = agent_cfg.vif;
         if(vif == null) begin
             `uvm_fatal("MON_VIF", "Monitor virtual interface not set")
         end

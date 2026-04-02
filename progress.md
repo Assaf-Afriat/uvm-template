@@ -1,19 +1,21 @@
 # UVM Template — Progress Tracker
 
-> Last updated: 2026-03-30
+> Last updated: 2026-04-02
 
 ---
 
-## Overall Progress: 13 / 19 steps complete
+## Overall Progress: 19 / 19 steps complete
 
 ```
 Phase 1   [##########] 100%  (2/2)  COMPLETE
 Phase 2   [##########] 100%  (5/5)  COMPLETE
 Phase 2.5 [##########] 100%  (1/1)  COMPLETE
 Phase 3   [##########] 100%  (3/3)  COMPLETE
-Phase 4   [####------]  50%  (2/4)
-Phase 5   [----------]   0%  (0/4)
+Phase 4   [##########] 100%  (4/4)  COMPLETE
+Phase 5   [##########] 100%  (4/4)  COMPLETE
 ```
+
+Simulation (Questa): **passing** — compile, elaborate, `dut_base_test`, assertions/UCDB flow verified.
 
 ---
 
@@ -48,29 +50,37 @@ Phase 5   [----------]   0%  (0/4)
 | 10   | `coverage/dut_coverage.sv`      | DONE   | No issues |
 | 11   | `sva/dut_assertions.sv`         | DONE   | No issues |
 
-## Phase 4 — Environment and Test
+## Phase 4 — Environment and Test -- COMPLETE
 
 | Step | File                             | Status      | Notes |
 |------|----------------------------------|-------------|-------|
-| 12   | `env/dut_env.sv`                 | DONE        | Added missing `super.connect_phase` |
+| 12   | `env/dut_env.sv`                 | DONE        | `super.connect_phase`; monitor → scoreboard/coverage via FIFO **`analysis_export`** (UVM 1.1d TLM) |
 | 13   | `callbacks/dut_callback_base.sv` | DONE        | Validated; added explicit `new()` |
-| 14   | `sequences/dut_base_sequence.sv` | NOT STARTED |       |
-| 15   | `test/dut_base_test.sv`          | NOT STARTED |       |
+| 14   | `sequences/dut_base_sequence.sv` | DONE        | Explicit create + `start_item`/`finish_item`; `uvm_do` optional — see **Project decisions** |
+| 15   | `test/dut_base_test.sv`          | DONE        | `get` `vif` from DB → `agent_cfg.vif` → `set` `agent_cfg` → `create` env; sequence + objections; `report_phase` |
 
-## Phase 5 — Integration
+## Phase 5 — Integration -- COMPLETE
 
-| Step | File              | Status      | Notes |
-|------|-------------------|-------------|-------|
-| 16   | `dut_pkg.sv`      | NOT STARTED |       |
-| 17   | `tb_top.sv`       | NOT STARTED |       |
-| 18   | `scripts/run.do`  | NOT STARTED |       |
-| 19   | `README.md`       | NOT STARTED |       |
+| Step | File              | Status | Notes |
+|------|-------------------|--------|-------|
+| 16   | `pkg/dut_pkg.sv`  | DONE   | `uvm` import + macros; includes: item → callback → config → agent → sb/cov/env → sequence → test — **`interface/dut_if.sv` is not in the package** (compiled separately; see Step 18) |
+| 17   | `tb_top.sv`       | DONE   | `` `include "uvm_macros.svh" `` + `` `include "dut_pkg.sv" ``; clk/rst, DUT, `dut_if`, `dut_assertions`, `config_db` `vif`, `run_test`, optional VCD |
+| 18   | `scripts/Run/`    | DONE   | **`python run.py`** (Questa): `compile.do` / `elaborate.do` — interface → DUT → SVA → **`tb_top.sv`** only; built-in **`uvm_pkg`**; **`+incdir+`** must match Questa’s UVM (**`uvm-1.1d/src`** for `mtiUvm` + `uvm_macros.svh`); `logs/`, `sim/`; optional **`assertion_report.do`** on UCDB |
+| 19   | `README.md`       | DONE   | Usage guide present; **optional polish:** point to `scripts/Run/run.py`, Questa **1.1d** macros path, and current tree (`pkg/`, `sequences/`, `test/`) — see **Documentation follow-up** |
 
 ---
 
 ## Current Open Items
 
-None.
+None for RTL/TB/simulation.
+
+---
+
+## Documentation follow-up (optional)
+
+| Item | Action |
+|------|--------|
+| `README.md` | Refresh directory tree, “Quick Start”, and tool versions to match `scripts/Run/`, `python run.py`, and UVM **1.1d** (Questa `mtiUvm`) vs generic “UVM 1.2”. |
 
 ---
 
@@ -113,15 +123,31 @@ None.
 | 33 | `dut_assertions.sv` | Assertions didn't match DUT behavior (handshake vs registered) | FIXED (rewritten) |
 | 34 | `dut_env.sv` | Missing `super.connect_phase(phase)` call | FIXED |
 | 35 | `dut_callback_base.sv` | Missing explicit `new()` constructor | FIXED |
+| 36 | `dut_base_test.sv` | Undefined `print_report()` in `report_phase` | FIXED (removed; `uvm_info` only) |
+| 37 | `dut_pkg.sv` | Wrong `` `include`` path for `dut_item` (`agent/` vs `transaction/`) | FIXED |
+| 38 | `dut_base_test.sv` / `tb_top` | `config_db`: wrong `get` type for `vif`; missing `agent_cfg` `set` | FIXED (`virtual dut_if` `get`, assign `agent_cfg.vif`, then `set` `agent_cfg`) |
+| 39 | `dut_env.sv` | TLM `connect` to FIFO object (vsim-8754 / vsim-12460) | FIXED — connect to **`in_fifo` / `out_fifo` / `dut_in_port` / `dut_out_port` `.analysis_export`** |
+| 40 | Compile / UVM | `uvm_macros.svh` / macro–library mismatch | FIXED — **`+incdir+`** to Questa **`verilog_src/uvm-1.1d/src`** (matches built-in **`mtiUvm`**) |
+| 41 | `scripts/Run/` | Single entry: ALU-style **`run.py`** + **`compile.do`** / **`elaborate.do`** | DONE — Questa-only; paths under repo / `UVM_MACROS_PATH` |
+
+---
+
+## Project decisions (not bugs)
+
+| Topic | Choice |
+|-------|--------|
+| Base sequence (Step 14) | **Explicit** item creation and `start_item` / `randomize` / `finish_item` in `body()`; `` `uvm_do(item) `` kept as an optional shorthand (comment in source). Differs from implementation_plan Step 14, which suggested defaulting to `` `uvm_do``. |
+| Package location | Implementation plan originally showed `dut_pkg.sv` at repo root; repo uses **`pkg/dut_pkg.sv`**. |
+| Interface vs package | **`dut_if.sv`** is **not** `` `include``d in **`dut_pkg.sv`**. Interfaces belong in their own compile unit; **`compile.do`** **`vlog`s `interface/dut_if.sv` first**, then TB, so classes in the package can use **`virtual dut_if`** without putting the interface inside the package. |
+| Virtual interface | **`tb_top`** `set`s `vif` globally; **`dut_base_test`** `get`s `virtual dut_if`, assigns **`agent_cfg.vif`**, then **`set`s `agent_cfg`** before **`env`** build. |
+| Environment (Step 12) | **`dut_env`** always builds agent, scoreboard, and coverage. **`dut_agent_config`** has `has_coverage` / `has_checks` for future use; they are **not** used to trim the env in the current template. |
+| Questa integration | **`scripts/Run/run.py`** + **`compile.do`** / **`elaborate.do`**; **`tb_top.sv`** is the only testbench compile unit and **includes** `dut_pkg.sv`. Built-in **`uvm_pkg`**; macro include dir **1.1d** aligned with **`mtiUvm`**. Optional root **`modelsim.ini`** for project overrides. |
+| `--clean` in `run.py` | Cleans **`sim/`** and **`logs/`** only; does **not** remove RTL/TB sources under **`coverage/`**. |
 
 ---
 
 ## What to Do Next
 
-Phase 4 — Environment and Test. Two files remaining:
-
-**Step 14: `sequences/dut_base_sequence.sv`** — Base random sequence (N transactions)
-
-**Step 15: `test/dut_base_test.sv`** — Creates config, creates env, starts sequence
+Optional: refresh **`README.md`** so the directory map, run instructions, and tool versions match **`scripts/Run/`**, **`python run.py`**, and Questa UVM **1.1d** (see **Documentation follow-up**).
 
 ---

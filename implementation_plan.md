@@ -39,10 +39,16 @@ UVM-template/
 │   └── dut_callback_base.sv      # Callback base class (optional extension point)
 ├── test/
 │   └── dut_base_test.sv          # Base test
-├── dut_pkg.sv                    # Package (include order)
+├── pkg/
+│   └── dut_pkg.sv                # Package (include order)
 ├── tb_top.sv                     # Testbench top module
 ├── scripts/
-│   └── run.do                    # QuestaSim compile + run script
+│   └── Run/
+│       ├── run.py                # Questa driver: compile, elaborate, sim, logs
+│       ├── compile.do            # vlog order: if → DUT → SVA → tb_top (includes pkg)
+│       ├── elaborate.do          # vopt + vsim +UVM_TESTNAME=...
+│       └── assertion_report.do   # Optional: UCDB assertion report
+├── modelsim.ini                  # Optional: project overrides (copy from Questa if needed)
 └── README.md                     # Usage guide and customization instructions
 ```
 
@@ -107,8 +113,8 @@ The order below ensures you never reference something that hasn't been defined y
   - Fields:
     - `virtual dut_if vif` — virtual interface handle
     - `uvm_active_passive_enum is_active = UVM_ACTIVE` — active/passive mode
-    - `bit has_coverage = 1` — enable/disable coverage collector
-    - `bit has_checks = 1` — enable/disable scoreboard checks
+    - `bit has_coverage = 1` — enable/disable coverage collector (available for future env logic)
+    - `bit has_checks = 1` — enable/disable scoreboard checks (available for future env logic)
   - `// TODO:` for adding protocol-specific config fields (timeout, burst length, etc.)
   - **After creating this file, refactor these existing files to use the config object:**
     - `agent/dut_agent.sv` — get config from config DB, use `cfg.is_active` instead of `get_is_active()`, pass config to sub-components
@@ -142,23 +148,22 @@ The order below ensures you never reference something that hasn't been defined y
 
 ### Phase 4 — Environment and Test
 
-- [ ] **Step 12: `env/dut_env.sv`** — Environment
-  - Builds agent, scoreboard, coverage
-  - Uses `cfg.has_coverage` to conditionally build coverage collector
-  - Uses `cfg.has_checks` to conditionally build scoreboard
-  - `connect_phase`: wires monitor analysis port to scoreboard and coverage
+- [x] **Step 12: `env/dut_env.sv`** — Environment
+  - Builds agent, scoreboard, coverage (always instantiated in this template)
+  - **`dut_agent_config`** includes `has_coverage` / `has_checks`; the template does **not** yet use them to skip scoreboard/coverage — optional extension
+  - `connect_phase`: monitor analysis ports → scoreboard/coverage **`uvm_tlm_analysis_fifo`** ports via **`.analysis_export`** (required for UVM 1.1d / `mtiUvm` TLM wiring)
 
-- [ ] **Step 13: `callbacks/dut_callback_base.sv`** — Callback base
+- [x] **Step 13: `callbacks/dut_callback_base.sv`** — Callback base
   - Virtual methods: `pre_drive`, `post_drive`, `post_monitor`
   - All empty by default — extension points for tests
   - Comment explaining the callback pattern
 
-- [ ] **Step 14: `sequences/dut_base_sequence.sv`** — Base sequence
+- [x] **Step 14: `sequences/dut_base_sequence.sv`** — Base sequence
   - Sends N random transactions (`num_items` configurable, default 20)
-  - Uses `uvm_do` macro (with comment about `start_item`/`finish_item` alternative)
+  - Template uses **explicit** `start_item` / `randomize` / `finish_item` (with optional `uvm_do` noted in comments)
   - `// TODO:` for constrained-random and directed sequences
 
-- [ ] **Step 15: `test/dut_base_test.sv`** — Base test
+- [x] **Step 15: `test/dut_base_test.sv`** — Base test
   - Creates `dut_agent_config` object, sets fields, puts in config DB
   - Creates environment in `build_phase`
   - Starts base sequence in `run_phase` with objection raise/drop
@@ -169,12 +174,15 @@ The order below ensures you never reference something that hasn't been defined y
 
 ### Phase 5 — Integration
 
-- [ ] **Step 16: `dut_pkg.sv`** — Package file
-  - `import uvm_pkg::*`, include macros
-  - Includes all files in dependency order: transaction → config → agent → scoreboard → coverage → env → callbacks → sequences → tests
+- [x] **Step 16: `pkg/dut_pkg.sv`** — Package file
+  - `import uvm_pkg::*`, include macros (`uvm_macros.svh`)
+  - Includes UVM classes only, in dependency order: **transaction → callback base → config → agent → scoreboard → coverage → env → sequences → tests**
+  - **`interface/dut_if.sv` is NOT included here** — the interface is a separate compile unit; **`compile.do`** runs **`vlog interface/dut_if.sv`** before **`tb_top.sv`** so `virtual dut_if` in config/agent classes resolves. Do not put the interface inside the package.
   - Config must be included **before** agent components (they depend on it)
 
-- [ ] **Step 17: `tb_top.sv`** — Testbench top
+- [x] **Step 17: `tb_top.sv`** — Testbench top
+  - `` `include "uvm_macros.svh" `` then `` `include "dut_pkg.sv" `` (single compile of TB; package not compiled separately)
+  - `import uvm_pkg::*; import dut_pkg::*;` inside the module
   - Clock generation (10ns period)
   - Reset generation
   - Interface instantiation
@@ -185,16 +193,20 @@ The order below ensures you never reference something that hasn't been defined y
   - VCD dump
   - No backpressure logic (keep template simple; add as TODO)
 
-- [ ] **Step 18: `scripts/run.do`** — QuestaSim compile and run
-  - Compile UVM library + package + tb_top
-  - Elaborate and run with `+UVM_TESTNAME=dut_base_test`
+- [x] **Step 18: `scripts/Run/`** — QuestaSim compile and run
+  - **`run.py`**: invokes ModelSim/Questa with project root, `UVM_MACROS_PATH` pointing to **`uvm-1.1d/src`** (match built-in `mtiUvm`), `compile.do` → `elaborate.do`, logs under `logs/`, build under `sim/`
+  - **`compile.do`**: `vlog` interface → DUT → SVA → **`tb_top.sv`** with `+incdir+` for sources and UVM macro directory
+  - **`elaborate.do`**: `vopt`, `vsim` with `+UVM_TESTNAME=dut_base_test` (and typical UVM defines)
+  - Optional **`assertion_report.do`** for UCDB assertion reporting (path aligned with test/UCDB name)
+  - Vivado flow not included (Questa-only template)
 
-- [ ] **Step 19: `README.md`** — Documentation
+- [x] **Step 19: `README.md`** — Documentation
   - What this template is
   - Directory map with one-line descriptions
   - How to customize (step-by-step: rename prefix, swap DUT, update interface, modify ref model)
   - How to compile and run
   - Checklist for adapting to a new project
+  - **Note:** keep README in sync with `scripts/Run/`, Questa UVM **1.1d** vs generic “1.2”, and `pkg/dut_pkg.sv` layout
 
 ---
 
@@ -220,6 +232,7 @@ The order below ensures you never reference something that hasn't been defined y
 - `convert2string()` in transaction items
 - Active/passive agent configuration
 - Agent config object (new addition — best practice for reusable agents)
+- **`scripts/Run/run.py`** driver matching ALU-style Questa flow
 
 ---
 
@@ -257,9 +270,9 @@ The order below ensures you never reference something that hasn't been defined y
                     │  ┌──────────────┐  ┌─▼────▼──────────┐  │
                     │  │  scoreboard  │  │   coverage      │  │
                     │  │  (ref model) │  │   (groups)      │  │
-                    │  │  cfg.checks  │  │  cfg.coverage   │  │
                     │  └──────────────┘  └─────────────────┘  │
-                    └─────────────────────────────────────────┘
+                    │  (cfg.has_checks / has_coverage reserved) │
+                    └───────────────────────────────────────────┘
                                    │
                           ┌────────▼────────┐
                           │    tb_top.sv    │
